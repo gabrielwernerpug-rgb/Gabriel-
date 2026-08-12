@@ -63,12 +63,22 @@ Chave no catálogo: `rosa` · 1400 × 1050 · 98 KB
 > detail, high resolution editorial plant photography, photorealistic, no text,
 > no watermark
 
+### ✅ `plant-cactus.jpg` — Cacto (*Cactaceae spp.*)
+Chave no catálogo: `cacto` · 1400 × 1050 · 142 KB
+
+> Professional botanical photograph of a healthy columnar cactus in a matte
+> terracotta pot, sharply defined ribs and fine spines, warm natural sunlight,
+> clean minimal sand-beige background, shallow depth of field, crisp macro detail
+> on the spines, high resolution editorial plant photography, photorealistic, no
+> text, no watermark
+
 ---
 
-## ⏳ Pendentes
+## ⏳ Pendente
 
-Prompts prontos — basta rodar no `z_image` com `aspect_ratio: "4:3"` e aplicar o
-pós-processamento acima.
+Prompt pronto — basta rodar no `z_image` com `aspect_ratio: "4:3"` e aplicar o
+pós-processamento acima. As duas tentativas de gerar esta imagem bateram em
+`429 rate_limit_reached` no backend do modelo; é só tentar de novo mais tarde.
 
 ### `plant-fern.jpg` — Samambaia (*Nephrolepis exaltata*)
 Chave no catálogo: `samambaia`
@@ -78,15 +88,6 @@ Chave no catálogo: `samambaia`
 > detailed leaflets, soft natural window daylight from the left, clean minimal
 > off-white background, shallow depth of field, sharp focus on foliage, high
 > resolution editorial plant photography, photorealistic, no text, no watermark
-
-### `plant-cactus.jpg` — Cacto (*Cactaceae spp.*)
-Chave no catálogo: `cacto`
-
-> Professional botanical photograph of a healthy columnar cactus in a matte
-> terracotta pot, sharply defined ribs and fine spines, warm natural sunlight,
-> clean minimal sand-beige background, shallow depth of field, crisp macro detail
-> on the spines, high resolution editorial plant photography, photorealistic, no
-> text, no watermark
 
 ---
 
