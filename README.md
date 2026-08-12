@@ -24,15 +24,20 @@ fortes diferentes:
 | Identificação por foto | ✅ Gemini 2.5 Flash via AI Gateway | ✅ LLM via Emergent key |
 | Chat com memória | ✅ Persistido em Postgres | ✅ Persistido em Mongo |
 | Lembretes de rega | ✅ | ✅ (com "due" e "upcoming") |
+| Notificação push no celular | ✅ Web Push + pg_cron | ❌ |
 | Diário da planta | ❌ | ✅ |
 | Link de compartilhar | ❌ | ✅ (token `secrets.token_urlsafe`) |
 | Painel admin | ❌ | ✅ (com checagem real no backend) |
 | Rate limit | ✅ por IP, em memória (10/min) | ✅ por usuário, no Mongo (20/dia) |
 | **Status** | 🟢 Ativo | 🔴 **Bloqueado — créditos esgotados** |
 
-> **Atenção:** o build do Emergent está parado desde 09/08 por falta de créditos.
-> O último pedido (rodar o testing agent até o fim) não chegou a executar.
-> Detalhes em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md#emergent--bloqueado).
+> **Atenção — não publicar ainda.** O endpoint que dispara as notificações
+> (`/api/public/send-reminders`) está sem autenticação e rodando com service
+> role. É o [P0 do roadmap](docs/ROADMAP.md) e a correção é pequena.
+>
+> **Créditos esgotados nas duas plataformas:** o Emergent está parado desde 09/08
+> (o testing agent nunca rodou) e o Lovable ficou sem créditos em 12/08, logo
+> depois de implementar o push.
 
 ---
 

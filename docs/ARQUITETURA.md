@@ -80,6 +80,44 @@ ordena a lista de conversas (mais recente primeiro).
 Sessão via `supabase.auth.signInAnonymously()`: o usuário tem histórico sem
 precisar criar conta.
 
+### Push de lembretes (commit `01f5903a`)
+
+```
+public/sw.js                          Service worker
+src/lib/push.ts                       Assinatura no cliente
+src/routes/api/public/vapid-key.ts    Chave pública VAPID
+src/routes/api/public/send-reminders.ts  Disparo (chamado pelo cron)
+```
+
+`push_subscriptions (id, user_id, endpoint UNIQUE, p256dh, auth, created_at)`,
+com RLS por `auth.uid()`. `reminders` ganhou `timezone`, `last_sent_at` e
+`updated_at` (com trigger), mais um índice parcial em `enabled`.
+
+O coração é `claim_due_reminders()` — `SECURITY DEFINER`, revogada de
+`anon`/`authenticated` e concedida só a `service_role`:
+
+```sql
+WITH due AS (
+  SELECT r.id FROM public.reminders r
+  WHERE r.enabled
+    AND (now() AT TIME ZONE COALESCE(NULLIF(r.timezone,''),'UTC'))::time >= (r.time || ':00')::time
+    AND (r.last_sent_at IS NULL OR (...date diff...) >= GREATEST(1, ...freq...))
+  FOR UPDATE SKIP LOCKED
+)
+UPDATE public.reminders AS t SET last_sent_at = now()
+WHERE t.id IN (SELECT due.id FROM due)
+RETURNING t.id, t.user_id, t.name, t.amount, t.plant_key;
+```
+
+Seleciona e marca na **mesma** operação, com `FOR UPDATE SKIP LOCKED` — duas
+execuções simultâneas do cron não mandam a notificação repetida. Quando o
+endpoint de push responde 404 ou 410, a assinatura morreu e a linha é apagada.
+
+Agendamento: `pg_cron` a cada 5 minutos, via `net.http_post`.
+
+> ⚠️ **O endpoint de disparo está aberto.** Sem autenticação, rodando com service
+> role, e aceitando GET. É o P0 do roadmap e bloqueia a publicação.
+
 ### Limitação conhecida: fotos do usuário não persistem
 
 `garden-store.ts` remove data URLs base64 antes de gravar (`sanitizePlantForDb`),

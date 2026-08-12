@@ -5,25 +5,47 @@ implementações. Cada item diz **o que está errado hoje**, não só o que faze
 
 Prioridade: 🔴 crítico · 🟠 alto · 🟡 médio · ⚪ baixo
 
+> **Estado em 12/08:** o push de lembretes foi implementado no Lovable (commit
+> `01f5903a`), mas os créditos do workspace acabaram antes da rodada de
+> correções. O P0 abaixo **precisa ser resolvido antes de publicar o app**.
+
 ---
 
-## 🔴 P0 — Destravar o Emergent
+## 🔴 P0 — `/api/public/send-reminders` está aberto para qualquer um
 
-O build está parado por **créditos esgotados** desde 09/08. As três mudanças da
-iteração 3 estão escritas mas **nunca foram testadas de ponta a ponta**, porque o
-testing agent foi cortado antes de executar.
+Introduzido junto com o push, no commit `01f5903a`.
 
-**Ação:** recarregar créditos e rodar o testing agent até o fim, cobrindo:
+O endpoint que dispara as notificações **não confere autenticação nenhuma** e roda
+com `supabaseAdmin` (service role). O agendamento no `pg_cron` manda um header
+`apikey` com a chave **publicável** — que é pública por definição, vai no bundle
+do frontend — e o handler nem lê esse header.
 
-1. Correção do login (race condition no `AuthCallback`)
-2. Rate limit de 20/dia no Mongo — **incluindo o rollback do contador quando a
-   análise falha** (se a chamada ao LLM quebra, a cota do usuário não pode ser
-   consumida)
-3. Tokens visuais aplicados
-4. Regressão: identificação por foto, chat com memória, diário, lembretes
-   (due + upcoming), link de compartilhar, admin
+Consequências:
 
-Nenhuma linha precisa ser reescrita antes disso. É só verificação.
+- Qualquer pessoa pode chamar o endpoint e disparar o loop de envio, que faz
+  query no banco e uma requisição HTTP de saída por assinatura registrada.
+  É amplificação de custo e vetor de DoS.
+- O handler aceita **GET** além de POST. Isso muda estado: crawler, prefetch de
+  navegador e link colado em chat disparam o envio sozinhos.
+- A resposta devolve `{due, sent, removed}`, expondo publicamente quantos
+  lembretes existem no sistema inteiro.
+
+O que **não** dá para fazer por esse furo: mandar notificação arbitrária para um
+usuário. `claim_due_reminders` só retorna lembrete genuinamente vencido e já
+marca `last_sent_at` na mesma operação. O estrago é custo, disponibilidade e
+vazamento de contagem — não sequestro de notificação.
+
+**Correção:**
+
+1. Criar o secret `CRON_SECRET` no projeto, com valor aleatório forte.
+2. Na entrada do handler, **antes de qualquer acesso ao banco**, comparar um
+   header `x-cron-secret` com `CRON_SECRET`; se não bater, 401 e para ali.
+   Comparação em tempo constante, não `===` puro.
+3. **Remover o handler GET.** Só POST.
+4. Atualizar o `cron.schedule` para mandar `x-cron-secret` no lugar da `apikey`.
+5. Responder só `{ ok: true }`. As contagens ficam no log do servidor.
+
+**Esforço:** baixo. **Impacto:** crítico — é o que bloqueia a publicação.
 
 ---
 
@@ -88,46 +110,7 @@ gateway consome a análise do usuário.
 
 ---
 
-## 🟠 P3 — Os lembretes não lembram
-
-**Hoje:** a tabela `reminders` guarda `freq`, `time`, `amount` e `enabled`, e a UI
-deixa criar e ligar/desligar. Mas **não existe nada que dispare a notificação**.
-
-O pedido original era explícito: *"uma parte de lembretes que a pessoa bota para
-mandar uma notificação no celular de quando tempo e quanto botar água"*. Hoje o
-lembrete é um registro no banco que ninguém lê.
-
-**Ação:**
-1. Service worker + Web Push (VAPID), com permissão pedida no momento em que o
-   usuário cria o primeiro lembrete — nunca no load da página
-2. Supabase Edge Function agendada (`pg_cron`) varrendo lembretes `enabled` cujo
-   horário chegou
-3. Guardar `last_sent_at` para não disparar duas vezes
-4. **Guardar o timezone do usuário.** `time` é um `text` como `"08:00"` — sem
-   timezone, um lembrete das 8h dispara na hora errada para metade dos usuários
-
-**Esforço:** alto. **Impacto:** alto — é uma feature prometida que não existe.
-
----
-
-## 🟡 P4 — Fotos das plantas: aplicar no app e gerar a última
-
-4 das 5 espécies que usavam hotlink direto ao Unsplash já têm foto gerada e
-otimizada em `assets/plants/`. Falta a **samambaia** (*Nephrolepis exaltata*) —
-duas tentativas bateram em `429 rate_limit_reached`; é só repetir mais tarde. O
-prompt está pronto em [`assets/plants/MANIFEST.md`](../assets/plants/MANIFEST.md).
-Custo: 0,15 crédito por imagem no modelo `z_image`.
-
-**Falta também aplicar as imagens no projeto Lovable** — hoje elas existem só
-aqui no repositório. No app, `plants.ts` continua com os hotlinks. Para cada
-planta: salvar o arquivo em `src/assets/`, importar no topo de `plants.ts` (mesmo
-padrão de `plant-orchid.jpg`) e apontar `img` e `thumb` para o import.
-
-**Esforço:** trivial. **Impacto:** médio — consistência visual e 5 hotlinks a menos.
-
----
-
-## 🟡 P5 — Furo pequeno na RLS de `plant_messages`
+## 🟡 P3 — Furo pequeno na RLS de `plant_messages`
 
 A política de INSERT valida `auth.uid() = user_id`, mas **não valida que o
 `chat_id` pertence a quem está inserindo**. Em tese um usuário pode inserir
@@ -136,8 +119,7 @@ mensagens em uma conversa de outra pessoa (informando o próprio `user_id` e um
 
 Ele não consegue *ler* essas mensagens de volta — a política de SELECT filtra por
 `user_id` — então não há vazamento de dados. Mas dá para poluir a conversa de
-outro usuário, e a mensagem apareceria para o dono do chat se a leitura algum dia
-passar a filtrar por `chat_id`.
+outro usuário.
 
 **Ação:** amarrar o `chat_id` ao dono na política de INSERT:
 
@@ -157,33 +139,57 @@ CREATE POLICY "own messages insert" ON public.plant_messages
 
 ---
 
-## 🟡 P6 — Decidir entre as duas implementações
+## 🟡 P4 — Fotos das plantas: aplicar no app e gerar a última
 
-Manter dois apps com o mesmo produto significa implementar cada feature duas
-vezes — e já divergiram (diário, share e admin só existem no Emergent; o Lovable
-tem SSR e um catálogo local mais rico).
+4 das 5 espécies que usavam hotlink direto ao Unsplash já têm foto gerada e
+otimizada em `assets/plants/`. Falta a **samambaia** (*Nephrolepis exaltata*) —
+as tentativas bateram em `429 rate_limit_reached`; é só repetir mais tarde. O
+prompt está pronto em [`assets/plants/MANIFEST.md`](../assets/plants/MANIFEST.md).
+Custo: 0,15 crédito por imagem no modelo `z_image`.
 
-Não dá para decidir isso sem o dono do projeto. As opções reais:
+**Falta também aplicar as imagens no projeto Lovable** — hoje elas existem só
+aqui no repositório. No app, `plants.ts` continua com os hotlinks. Para cada
+planta: salvar o arquivo em `src/assets/`, importar no topo de `plants.ts` (mesmo
+padrão de `plant-orchid.jpg`) e apontar `img` e `thumb` para o import.
 
-- **Ficar no Lovable** e portar diário + share + admin. Front melhor, backend a
-  reconstruir.
-- **Ficar no Emergent** e portar o catálogo de 8 plantas e o visual. Backend mais
-  completo, mas hoje bloqueado.
-- **Lovable como front, Emergent como API.** Só faz sentido se o backend do
-  Emergent for mesmo o destino de longo prazo — senão adiciona uma rede no meio
-  sem ganho.
-
-**Ação:** decisão do dono. Enquanto não houver decisão, evitar implementar feature
-nova em ambos.
+**Esforço:** trivial. **Impacto:** médio — consistência visual e 5 hotlinks a menos.
 
 ---
 
-## ⚪ P7 — Ajustes menores
+## 🟡 P5 — Decidir entre as duas implementações
 
-- **`reminders` não tem `updated_at`** nem trigger, ao contrário de `plant_chats`.
-  Sem isso não dá para saber quando um lembrete foi alterado.
+Manter dois apps com o mesmo produto significa implementar cada feature duas
+vezes — e já divergiram (diário, share e admin só existem no Emergent; o Lovable
+tem SSR, o catálogo local mais rico e agora o push). As opções reais:
+
+- **Ficar no Lovable** e portar diário + share + admin.
+- **Ficar no Emergent** e portar o catálogo de 8 plantas, o visual e o push.
+- **Lovable como front, Emergent como API.** Só faz sentido se o backend do
+  Emergent for mesmo o destino de longo prazo.
+
+**Ação:** decisão do dono. Enquanto não houver decisão, evitar implementar
+feature nova em ambos.
+
+---
+
+## ⚪ P6 — Ajustes menores
+
+- **Lembrete criado depois do horário dispara no mesmo dia.** Em
+  `claim_due_reminders` a condição é `hora_atual >= r.time` com `last_sent_at`
+  nulo. Quem criar um lembrete de 08:00 às 10:00 recebe a notificação na hora.
+  Discutível se é bug ou conveniência — decidir e deixar explícito.
 - **`SmartGarden.tsx` concentra toda a UI** em um arquivo só. Vale quebrar por
   tela (identificação, detalhe, chat, lembretes) quando for mexer nele de novo.
 - **`conf` é string fixa no catálogo** (`'97% de confiança'`), enquanto a
   identificação por IA devolve `confidence` numérico. Dois formatos para a mesma
   ideia — unificar em número e formatar na view.
+
+---
+
+## ✅ Feito
+
+- **Push de lembretes** (commit `01f5903a`) — service worker, `push.ts`, tabela
+  `push_subscriptions` com RLS, colunas `timezone`/`last_sent_at`/`updated_at` em
+  `reminders`, `claim_due_reminders()` com `FOR UPDATE SKIP LOCKED`, limpeza de
+  assinatura morta em 404/410, e `pg_cron` a cada 5 minutos. Falta só o P0 acima.
+- **Fotos geradas e otimizadas** — 4 das 5 (veja `assets/plants/`).
