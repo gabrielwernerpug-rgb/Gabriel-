@@ -31,13 +31,14 @@ fortes diferentes:
 | Rate limit | ✅ por IP, em memória (10/min) | ✅ por usuário, no Mongo (20/dia) |
 | **Status** | 🟢 Ativo | 🔴 **Bloqueado — créditos esgotados** |
 
-> **Atenção — não publicar ainda.** O endpoint que dispara as notificações
-> (`/api/public/send-reminders`) está sem autenticação e rodando com service
-> role. É o [P0 do roadmap](docs/ROADMAP.md) e a correção é pequena.
+> **⚠️ Não publicar ainda — duas coisas estão quebradas.** O cron do push toma
+> 401 (nenhuma notificação sai) e a primeira identificação por foto numa aba nova
+> também toma 401. As duas correções estão prontas para aplicar à mão, sem gastar
+> crédito de agente, em [`docs/CORRECOES-PENDENTES.md`](docs/CORRECOES-PENDENTES.md).
 >
 > **Créditos esgotados nas duas plataformas:** o Emergent está parado desde 09/08
-> (o testing agent nunca rodou) e o Lovable ficou sem créditos em 12/08, logo
-> depois de implementar o push.
+> (o testing agent nunca rodou) e o Lovable acabou os créditos no meio da rodada
+> de correções.
 
 ---
 

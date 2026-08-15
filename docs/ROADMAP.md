@@ -11,7 +11,13 @@ Prioridade: 🔴 crítico · 🟠 alto · 🟡 médio · ⚪ baixo
 
 ---
 
-## 🔴 P0 — `/api/public/send-reminders` está aberto para qualquer um
+## ✅ ~~P0 — `/api/public/send-reminders` está aberto para qualquer um~~ (resolvido em `32fa1db4`)
+
+> Corrigido: o handler compara `x-cron-secret` com o secret `CRON_SECRET` em
+> tempo constante **antes** de qualquer acesso ao banco, o handler GET foi
+> removido, a resposta virou `{ ok: true }` (contagens só no log), e o endpoint
+> falha fechado se o secret não estiver configurado. Registro do problema
+> original abaixo.
 
 Introduzido junto com o push, no commit `01f5903a`.
 
@@ -77,40 +83,30 @@ Não gravar base64 no Postgres foi a decisão certa. A que falta é a outra meta
 
 ---
 
-## 🟠 P2 — Rate limit do Lovable não resiste a nada
+## ⚪ Correção de um erro deste documento — rate limit
 
-**Hoje:** `api-guard.ts` faz 10 req/min **por IP, em memória**.
+Uma versão anterior deste roadmap afirmava que o rate limit era *"10 req/min por
+IP, em memória, que zera no redeploy e não vale entre instâncias"*. **Isso estava
+errado.** O `api-guard.ts` sempre usou um RPC `rate_limit_hit` persistido no
+banco, compartilhado entre instâncias e resistente a redeploy.
 
-Três problemas:
-- **Some no redeploy** — o contador zera a cada build
-- **Não vale entre instâncias** — com mais de um processo, cada um tem o seu
-  contador, e o limite real vira `10 × nº de instâncias`
-- **Por IP pune quem não devia** — uma escola, um escritório ou um CGNAT de
-  operadora compartilham IP; um usuário ativo bloqueia os outros
+A parte que estava certa era só a chave: `identify-plant:${clientIp(request)}`,
+por IP — o que penaliza quem divide rede (escola, escritório, CGNAT de operadora).
 
-O Emergent **já resolveu isso do jeito certo**: contador por usuário, persistido,
-com `$inc` atômico e upsert. Vale portar a mesma ideia para o Supabase.
+Isso foi resolvido no commit `32fa1db4` adicionando uma segunda camada por
+usuário, sem remover a primeira. Veja em [Feito](#-feito).
 
-**Ação:** tabela `ai_usage (user_id, day, count)` com `PRIMARY KEY (user_id, day)`
-e upsert atômico:
-
-```sql
-INSERT INTO ai_usage (user_id, day, count) VALUES (auth.uid(), current_date, 1)
-ON CONFLICT (user_id, day) DO UPDATE SET count = ai_usage.count + 1
-RETURNING count;
-```
-
-Manter o limite por IP como segunda camada (protege o endpoint antes do login
-anônimo), mas o limite que conta é o por usuário.
-
-**Importante:** devolver a cota se a chamada ao LLM falhar — senão um erro do
-gateway consome a análise do usuário.
-
-**Esforço:** baixo. **Impacto:** alto — é custo direto de API.
+Detalhe de comportamento que vale conhecer: tanto `rateLimit` quanto `aiQuotaHit`
+**falham abertos** — se o banco der erro, a requisição passa em vez de ser
+bloqueada. É uma escolha defensável (uma falha de banco não derruba o app), mas
+significa que uma instabilidade no Postgres desliga o limite por completo.
 
 ---
 
-## 🟡 P3 — Furo pequeno na RLS de `plant_messages`
+## ✅ ~~P3 — Furo pequeno na RLS de `plant_messages`~~ (resolvido em `32fa1db4`)
+
+> Corrigido: a policy de INSERT agora exige que exista um `plant_chats` com
+> aquele `id` e `user_id = auth.uid()`. Registro do problema original abaixo.
 
 A política de INSERT valida `auth.uid() = user_id`, mas **não valida que o
 `chat_id` pertence a quem está inserindo**. Em tese um usuário pode inserir
@@ -191,5 +187,18 @@ feature nova em ambos.
 - **Push de lembretes** (commit `01f5903a`) — service worker, `push.ts`, tabela
   `push_subscriptions` com RLS, colunas `timezone`/`last_sent_at`/`updated_at` em
   `reminders`, `claim_due_reminders()` com `FOR UPDATE SKIP LOCKED`, limpeza de
-  assinatura morta em 404/410, e `pg_cron` a cada 5 minutos. Falta só o P0 acima.
+  assinatura morta em 404/410, e `pg_cron` a cada 5 minutos.
+- **Autenticação do disparo de push** (`32fa1db4`) — `CRON_SECRET` com comparação
+  em tempo constante, só POST, resposta sem contagens.
+- **RLS de `plant_messages`** (`32fa1db4`) — `chat_id` amarrado ao dono no INSERT.
+- **Cota diária por usuário** (`32fa1db4`) — tabela `ai_usage` com
+  `PRIMARY KEY (user_id, day)`, `ai_usage_hit()` com upsert atômico
+  (`ON CONFLICT ... DO UPDATE SET count = u.count + 1 RETURNING count`), 20
+  identificações/dia, e `ai_usage_refund()` devolvendo a cota em **todos** os
+  caminhos de erro do `identify-plant` (gateway fora, JSON inválido, 402, 502).
+  O limite por IP continua como primeira camada.
+- **Endurecimento de privilégios** (`32fa1db4`) — `EXECUTE` revogado de
+  `anon`/`authenticated` em `ai_usage_hit`, `ai_usage_refund`,
+  `claim_due_reminders` e `rate_limit_hit`. O refund em especial não podia ficar
+  exposto: quem pudesse chamá-lo zeraria a própria cota à vontade.
 - **Fotos geradas e otimizadas** — 4 das 5 (veja `assets/plants/`).
