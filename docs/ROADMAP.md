@@ -5,9 +5,9 @@ implementações. Cada item diz **o que está errado hoje**, não só o que faze
 
 Prioridade: 🔴 crítico · 🟠 alto · 🟡 médio · ⚪ baixo
 
-> **Estado em 12/08:** o push de lembretes foi implementado no Lovable (commit
-> `01f5903a`), mas os créditos do workspace acabaram antes da rodada de
-> correções. O P0 abaixo **precisa ser resolvido antes de publicar o app**.
+> **Estado em 17/08:** todos os itens de segurança foram resolvidos e
+> verificados. Para publicar, falta apenas **ativar a Lovable AI em Connectors**
+> — veja [`CORRECOES-PENDENTES.md`](CORRECOES-PENDENTES.md).
 
 ---
 
@@ -206,4 +206,11 @@ feature nova em ambos.
   `anon`/`authenticated` em `ai_usage_hit`, `ai_usage_refund`,
   `claim_due_reminders` e `rate_limit_hit`. O refund em especial não podia ficar
   exposto: quem pudesse chamá-lo zeraria a própria cota à vontade.
-- **Fotos geradas e otimizadas** — 4 das 5 (veja `assets/plants/`).
+- **Cron do push autenticado** (17/08) — segredo em `app_config` gravado por
+  parâmetro, job reagendado com `x-cron-secret`, validação de que existe
+  exatamente 1 job, e `REVOKE ALL ON app_config FROM anon, authenticated`.
+- **Sessão válida antes das rotas protegidas** (17/08) — `validSession()` checa
+  expiração com folga de 60s, renova com `refreshSession()` e só cai no login
+  anônimo em último caso. `ensureAccessToken()` novo, usado pelo
+  `identifyPlantFromPhoto`. Verificado com teste em aba limpa: sem 401.
+- **Fotos geradas e otimizadas** — 5 das 5 (veja `assets/plants/`).

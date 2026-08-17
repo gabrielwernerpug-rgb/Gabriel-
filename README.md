@@ -31,14 +31,14 @@ fortes diferentes:
 | Rate limit | ✅ por IP, em memória (10/min) | ✅ por usuário, no Mongo (20/dia) |
 | **Status** | 🟢 Ativo | 🔴 **Bloqueado — créditos esgotados** |
 
-> **⚠️ Não publicar ainda — duas coisas estão quebradas.** O cron do push toma
-> 401 (nenhuma notificação sai) e a primeira identificação por foto numa aba nova
-> também toma 401. As duas correções estão prontas para aplicar à mão, sem gastar
-> crédito de agente, em [`docs/CORRECOES-PENDENTES.md`](docs/CORRECOES-PENDENTES.md).
+> **Falta uma coisa para publicar:** ativar a **Lovable AI** em Connectors — o
+> gateway está respondendo `403 Lovable AI is disabled for this workspace`, e sem
+> isso a identificação por foto não funciona. Os dois bugs que bloqueavam antes
+> (cron em 401 e primeira foto em 401) já foram corrigidos e verificados.
+> Checklist em [`docs/CORRECOES-PENDENTES.md`](docs/CORRECOES-PENDENTES.md).
 >
-> **Créditos esgotados nas duas plataformas:** o Emergent está parado desde 09/08
-> (o testing agent nunca rodou) e o Lovable acabou os créditos no meio da rodada
-> de correções.
+> **Emergent parado desde 09/08** por falta de créditos — o testing agent nunca
+> chegou a rodar.
 
 ---
 
