@@ -76,7 +76,7 @@ projeto.
 | Girassol (*Helianthus annuus*) | `plant-sunflower.jpg` | ✅ Gerada |
 | Rosa (*Rosa spp.*) | `plant-rose.jpg` | ✅ Gerada |
 | Cacto (*Cactaceae spp.*) | `plant-cactus.jpg` | ✅ Gerada |
-| Samambaia (*Nephrolepis exaltata*) | — | ⏳ Pendente (rate limit) |
+| Samambaia (*Nephrolepis exaltata*) | `plant-fern.jpg` | ✅ Gerada |
 
 Orquídea, palmeira e lavanda já usam assets locais no projeto Lovable e não
 precisavam de substituição.

@@ -72,16 +72,8 @@ Chave no catálogo: `cacto` · 1400 × 1050 · 142 KB
 > on the spines, high resolution editorial plant photography, photorealistic, no
 > text, no watermark
 
----
-
-## ⏳ Pendente
-
-Prompt pronto — basta rodar no `z_image` com `aspect_ratio: "4:3"` e aplicar o
-pós-processamento acima. As duas tentativas de gerar esta imagem bateram em
-`429 rate_limit_reached` no backend do modelo; é só tentar de novo mais tarde.
-
-### `plant-fern.jpg` — Samambaia (*Nephrolepis exaltata*)
-Chave no catálogo: `samambaia`
+### ✅ `plant-fern.jpg` — Samambaia (*Nephrolepis exaltata*)
+Chave no catálogo: `samambaia` · 1400 × 1050 · 181 KB
 
 > Professional botanical photograph of a lush healthy Boston fern (Nephrolepis
 > exaltata) in a simple terracotta pot, vibrant green arching fronds with finely

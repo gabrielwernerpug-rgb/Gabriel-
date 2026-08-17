@@ -135,18 +135,23 @@ CREATE POLICY "own messages insert" ON public.plant_messages
 
 ---
 
-## 🟡 P4 — Fotos das plantas: aplicar no app e gerar a última
+## 🟡 P4 — Aplicar as fotos das plantas no app
 
-4 das 5 espécies que usavam hotlink direto ao Unsplash já têm foto gerada e
-otimizada em `assets/plants/`. Falta a **samambaia** (*Nephrolepis exaltata*) —
-as tentativas bateram em `429 rate_limit_reached`; é só repetir mais tarde. O
-prompt está pronto em [`assets/plants/MANIFEST.md`](../assets/plants/MANIFEST.md).
-Custo: 0,15 crédito por imagem no modelo `z_image`.
+As **5** espécies que usavam hotlink direto ao Unsplash já têm foto gerada e
+otimizada em `assets/plants/`. Falta aplicá-las no projeto Lovable — hoje elas
+existem só aqui no repositório, e `plants.ts` continua com os hotlinks.
 
-**Falta também aplicar as imagens no projeto Lovable** — hoje elas existem só
-aqui no repositório. No app, `plants.ts` continua com os hotlinks. Para cada
-planta: salvar o arquivo em `src/assets/`, importar no topo de `plants.ts` (mesmo
-padrão de `plant-orchid.jpg`) e apontar `img` e `thumb` para o import.
+Para cada planta: salvar o arquivo em `src/assets/`, importar no topo de
+`plants.ts` (mesmo padrão de `plant-orchid.jpg`) e apontar `img` e `thumb` para
+o import.
+
+| Chave | Arquivo |
+|---|---|
+| `samambaia` | `plant-fern.jpg` |
+| `monstera` | `plant-monstera.jpg` |
+| `cacto` | `plant-cactus.jpg` |
+| `girassol` | `plant-sunflower.jpg` |
+| `rosa` | `plant-rose.jpg` |
 
 **Esforço:** trivial. **Impacto:** médio — consistência visual e 5 hotlinks a menos.
 
