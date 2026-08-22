@@ -37,10 +37,45 @@ fortes diferentes:
 > (cron em 401 e primeira foto em 401) já foram corrigidos e verificados.
 > Checklist em [`docs/CORRECOES-PENDENTES.md`](docs/CORRECOES-PENDENTES.md).
 >
-> **Emergent parado desde 09/08** por falta de créditos — o testing agent nunca
-> chegou a rodar.
+> **Emergent:** o testing agent da iteração 3 finalmente rodou até o fim em
+> 22/08 — 48/50 na suíte completa (os 2 eram colisão da infra de teste) e 6/6 na
+> re-execução serial. Os créditos acabaram logo depois.
 
 ---
+
+## As plantas que o app conhece
+
+Catálogo inicial, com plano de cuidado completo (rega, 5 nutrientes, solo,
+5 passos de plantio e 4 problemas comuns cada):
+
+| Nome popular | Nome científico |
+|---|---|
+| Samambaia | *Nephrolepis exaltata* |
+| Costela-de-Adão | *Monstera deliciosa* |
+| Orquídea | *Phalaenopsis spp.* |
+| Cacto | *Cactaceae spp.* |
+| Girassol | *Helianthus annuus* |
+| Rosa | *Rosa spp.* |
+| Palmeira | *Arecaceae* |
+| Lavanda | *Lavandula angustifolia* |
+
+Desde o commit `99638022` esse catálogo **deixou de ser fixo**: toda planta
+identificada é gravada em `plant_catalog` e passa a ser respondida do banco na
+próxima vez, sem gastar chamada de modelo.
+
+### Cascata de identificação
+
+Quando uma fonte não resolve, cai para a seguinte:
+
+1. **IA (Gemini)** — a única que produz o plano de cuidado completo
+2. **Pl@ntNet** — API especializada em identificar planta por foto (tier
+   gratuito; pulada sem quebrar se não houver `PLANTNET_API_KEY`)
+3. **GBIF + Wikipédia** — gratuitas e sem chave, com fallback pt → en
+
+**GBIF e Wikipédia identificam a espécie, mas não sabem o plano de cuidado.**
+Esses campos ficam explicitamente vazios e marcados como indisponíveis, com link
+para a fonte — nunca preenchidos por chute. Instrução de rega ou adubação errada
+mata a planta de quem usa; é pior que não responder.
 
 ## Onde está o código
 

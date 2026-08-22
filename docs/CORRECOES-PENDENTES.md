@@ -1,99 +1,122 @@
 # Checklist antes de publicar
 
-Estado em **17/08**. Os dois bugs que bloqueavam a publicação foram corrigidos e
-verificados. Restou **uma** pendência, e ela é de configuração, não de código.
+Estado em **22/08**.
 
 ---
 
 ## 🔴 Falta ligar a Lovable AI no workspace
 
-No teste de ponta a ponta, a identificação por foto passou pela autenticação sem
-erro, mas o gateway respondeu:
-
-```
-403 — Lovable AI is disabled for this workspace
-```
-
-Sem isso, o fluxo principal do app não funciona: a pessoa manda a foto e não
-recebe identificação nenhuma.
+O gateway responde `403 — Lovable AI is disabled for this workspace`. Sem isso a
+identificação por foto não funciona pela fonte principal.
 
 **Ação:** ativar a Lovable AI em **Connectors**, no projeto do Lovable.
 
-**Vale confirmar:** o teste rodou contra o servidor de desenvolvimento. A
-mensagem fala em "workspace", o que sugere valer para produção também — mas
-confirme com uma identificação real no preview depois de ativar, antes de
-publicar.
+> Desde a cascata de fontes (commit `99638022`), o app não fica mais mudo quando
+> isso acontece: cai para GBIF + Wikipédia e ainda identifica a espécie. Mas sem
+> a IA **não há plano de cuidado**, que é o produto. Continua sendo bloqueio.
 
 ---
 
-## ✅ Resolvido — o cron do push tomava 401
+## 🟠 Três lacunas da última rodada
 
-O endpoint `/api/public/send-reminders` passou a exigir `x-cron-secret`, mas o
-agendamento continuava mandando só `apikey`. Toda execução batia em 401 e
-nenhuma notificação saía.
+Pedidas e não entregues no commit `99638022`. A mensagem com estas correções não
+chegou a ser enviada — os créditos do Lovable acabaram.
 
-**Como foi corrigido:**
+### 1. `chat-plant` continua sem cota por usuário
 
-- O segredo foi gravado em `public.app_config` por **parâmetro** (via conexão
-  direta com `psql`, usando bind de variável) — nunca literal no corpo da
-  migration, nunca ecoado em log
-- `cron.unschedule('send-watering-reminders')` seguido de reagendamento montando
-  o header `x-cron-secret` a partir de `app_config`
-- A migration **valida** que sobrou exatamente 1 job com esse nome, e falha com
-  exceção se não sobrou — em vez de deixar dois disparando em paralelo
-- `REVOKE ALL ON public.app_config FROM anon, authenticated` — a tabela tinha
-  grants para `anon` que não deveriam existir
+`src/routes/api/chat-plant.ts` só tem `rateLimit('chat-plant:' + clientIp(...))`
+— 20 por minuto por IP. Não chama `userIdFromRequest`, `aiQuotaHit` nem
+`aiQuotaRefund`.
 
-Manter o segredo em `app_config` (e não literal na migration) importa porque
-migrations ficam versionadas no repositório do projeto.
+Como o chat também chama o Gemini, dá para queimar crédito de API por ali sem
+esbarrar em cota nenhuma — exatamente o buraco que a cota do `identify-plant`
+fechou.
+
+**Ação:** aplicar o mesmo padrão de `identify-plant.ts` — validar token, consumir
+cota por usuário, e devolver a cota em **todos** os caminhos de erro (gateway
+inalcançável, 402, 429, 502, resposta vazia).
+
+### 2. As 8 plantas não foram semeadas em `plant_catalog`
+
+A migration `20260822173709` cria a tabela mas **não tem nenhum INSERT**, e não
+há seed no código. Se a home passou a ler do banco, está mostrando catálogo
+vazio.
+
+**Ação:** semear as 8 de `plants.ts` com `source = 'seed'` — valor que o
+`saveToCatalog` já trata como "tem plano de cuidado" e protege de ser
+sobrescrito por uma fonte sem plano.
+
+**Cuidado:** orquídea, palmeira e lavanda usam `img` vindo de import do bundler,
+não URL. Gravar assim deixa as três sem imagem ao ler do banco.
+
+### 3. A tela "Todas as plantas" não existe
+
+Não há arquivo de rota novo em `src/routes/`.
+
+**Ação:** listar tudo que o site conhece, com busca por nome popular e
+científico, procedência de cada uma, e marcação visual das que estão sem plano
+de cuidado completo.
 
 ---
 
-## ✅ Resolvido — a primeira foto falhava com 401
+## ✅ Resolvido
 
-`identify-plant` passou a exigir bearer token (para a cota por usuário), mas o
-`fetch` lia `supabase.auth.getSession()`, que devolve `null` antes de a sessão
-anônima existir. Em aba nova, a primeira identificação tomava 401.
+### Cascata de fontes + catálogo persistente (`99638022`)
 
-**Como foi corrigido** — em `src/lib/garden-store.ts`, uma função `validSession()`
-central:
+`src/lib/plant-sources.ts`, com a ordem: **IA (Gemini)** → **Pl@ntNet** (pulada
+sem quebrar se não houver `PLANTNET_API_KEY`) → **GBIF + Wikipédia** (gratuitas,
+sem chave, com fallback pt → en).
 
-```ts
-async function validSession() {
-  const { data } = await supabase.auth.getSession();
-  const session = data.session;
-  if (session) {
-    const expiresAt = (session.expires_at ?? 0) * 1000;
-    const stillValid = expiresAt - Date.now() > 60_000;
-    if (stillValid) return session;
-    const { data: refreshed } = await supabase.auth.refreshSession();
-    if (refreshed.session) return refreshed.session;
-  }
-  const { data: anon, error } = await supabase.auth.signInAnonymously();
-  ...
-}
-```
+A regra crítica foi respeitada: `careUnavailablePlant()` devolve rega,
+nutrientes, solo, passos e problemas **vazios**, com `careAvailable: false` e a
+procedência (`source`, `sourceLabel`, `sourceUrl`). Nada de plano de cuidado
+inventado a partir de fonte que não sabe — instrução de rega errada mata a
+planta de quem usa.
 
-`ensureSession()` e o novo `ensureAccessToken()` passam os dois por ela, e
-`identifyPlantFromPhoto` faz `await ensureAccessToken()` antes do fetch.
+O agente ainda acrescentou por conta própria uma proteção que não foi pedida e
+estava certa: `saveToCatalog` **não sobrescreve** um registro que tem plano de
+cuidado por um que não tem.
 
-A folga de 60 segundos evita o caso chato: token que ainda é válido na hora da
-checagem e expira no meio da requisição.
+Tabela `plant_catalog` com índice único em `lower(sci)` (sem espécie duplicada),
+leitura pública e **nenhuma policy de escrita** — usuário não grava no catálogo.
 
-**Verificado:** teste automatizado em aba limpa, sem sessão — a foto saiu já com
-token válido, **nenhum 401**.
+### Cron do push autenticado (`32fa1db4` + 17/08)
+
+Segredo em `app_config` gravado por parâmetro, job reagendado com
+`x-cron-secret`, validação de que existe exatamente 1 job, e `REVOKE ALL ON
+app_config FROM anon, authenticated`.
+
+### Sessão válida antes das rotas protegidas (17/08)
+
+`validSession()` checa expiração com folga de 60s, renova com `refreshSession()`
+e só cai no login anônimo em último caso. Verificado com teste em aba limpa: sem
+401.
+
+### Emergent — iteração 3 finalmente verificada (22/08)
+
+O testing agent, que vinha sendo cortado desde 09/08, **rodou até o fim**:
+
+- Suíte completa em paralelo: **48/50**
+- Os 2 que falharam eram colisão da própria infra de teste — dois workers `xdist`
+  batendo em `/api/plants/analyze` ao mesmo tempo, ou seja, o rate limit fazendo
+  o trabalho dele
+- Re-execução serial de `test_iter3_features.py`: **6/6**
+- Relatório em `/app/test_reports/iteration_3.json`
+
+Ficaram verificados: correção do login (race condition no `AuthCallback`), rate
+limit de 20/dia no Mongo com rollback quando a análise falha, tokens visuais, e
+regressão de identificação, chat, diário, lembretes, share e admin.
+
+Os créditos do Emergent acabaram logo depois, antes do catálogo persistente e da
+cascata GBIF/Wikipédia daquele lado.
 
 ---
 
 ## Efeitos colaterais conhecidos (não bloqueiam)
 
-- **Sessão anônima perdida = histórico perdido.** Se o refresh token expirar ou
-  for revogado, `validSession()` cria uma sessão anônima **nova**. As conversas e
-  lembretes do usuário anterior ficam inalcançáveis. Como a conta anônima não tem
-  credencial para recuperar, não há alternativa melhor — mas hoje isso acontece
-  em silêncio. O ideal seria avisar a pessoa, em vez de ela achar que o app
-  apagou tudo.
-- **`chat-plant` não tem cota por usuário.** A identificação ganhou limite de 20
-  por dia por usuário, mas o chat continua só com o limite por IP. Como o chat
-  também chama o modelo, dá para gastar crédito de API por ali sem esbarrar em
-  cota nenhuma. Vale alinhar os dois.
+- **Sessão anônima perdida = histórico perdido.** Se o refresh token expirar,
+  cria-se uma sessão anônima nova e conversas e lembretes antigos ficam
+  inalcançáveis. Não há alternativa melhor (conta anônima não tem credencial de
+  recuperação), mas hoje acontece em silêncio — o ideal seria avisar.
+- **A foto do usuário ainda some no reload** — P1 do [roadmap](ROADMAP.md).
+  Precisa de Supabase Storage.
