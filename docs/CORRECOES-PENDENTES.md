@@ -2,14 +2,31 @@
 
 Estado em **22/08**.
 
+> **Créditos:** nas duas plataformas o saldo aparece zerado pela API, mesmo
+> quando o painel sugere o contrário. Lovable: workspace `Gabriel's Lovable`,
+> plano `free`, e todo `send_message` volta recusado. Emergent:
+> `credits_exhausted: true`, agente `paused`. Vale conferir se a recarga caiu na
+> mesma conta em que o MCP está autenticado — o Lovable tem só um workspace
+> nessa conta, então uma compra feita em outro login não aparece aqui.
+
 ---
 
-## 🔴 Falta ligar a Lovable AI no workspace
+## 🔴 Falta ligar o conector de IA — causa confirmada
 
 O gateway responde `403 — Lovable AI is disabled for this workspace`. Sem isso a
 identificação por foto não funciona pela fonte principal.
 
-**Ação:** ativar a Lovable AI em **Connectors**, no projeto do Lovable.
+**Causa confirmada** (via `list_connectors` em 22/08): o conector
+`ai_gateway` — *"AI — Use OpenAI and Google's AI models in your Lovable app"* —
+está com **`is_enabled: false`**. Ele é um conector "seamless"; para comparação,
+`lovable-cloud`, `stripe`, `paddle` e `supabase` estão todos `true` no mesmo
+workspace. É só esse que está desligado.
+
+**Ação:** ligar o conector **AI** no painel do Lovable (Connectors). Não dá para
+ativar pelo MCP — a API só devolve o link, a ativação é no painel.
+
+**Isso não consome crédito de agente.** É um toggle, e destrava o fluxo
+principal do app. É a ação de maior retorno disponível agora.
 
 > Desde a cascata de fontes (commit `99638022`), o app não fica mais mudo quando
 > isso acontece: cai para GBIF + Wikipédia e ainda identifica a espécie. Mas sem
