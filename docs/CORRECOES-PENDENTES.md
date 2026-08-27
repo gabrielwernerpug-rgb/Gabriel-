@@ -39,6 +39,10 @@ principal do app. É a ação de maior retorno disponível agora.
 Pedidas e não entregues no commit `99638022`. A mensagem com estas correções não
 chegou a ser enviada — os créditos do Lovable acabaram.
 
+> **As três estão escritas como código pronto para colar em
+> [`PATCHES-PRONTOS.md`](PATCHES-PRONTOS.md)** — aplicáveis no editor do Lovable
+> e no SQL Editor do Supabase, sem consumir crédito de agente.
+
 ### 1. `chat-plant` continua sem cota por usuário
 
 `src/routes/api/chat-plant.ts` só tem `rateLimit('chat-plant:' + clientIp(...))`
