@@ -28,14 +28,14 @@ fortes diferentes:
 | Diário da planta | ❌ | ✅ |
 | Link de compartilhar | ❌ | ✅ (token `secrets.token_urlsafe`) |
 | Painel admin | ❌ | ✅ (com checagem real no backend) |
-| Rate limit | ✅ por IP, em memória (10/min) | ✅ por usuário, no Mongo (20/dia) |
+| Rate limit | ✅ por IP (10/min) e cota por usuário, no banco | ✅ por usuário, no Mongo (20/dia) |
 | **Status** | 🟢 Ativo | 🔴 **Bloqueado — créditos esgotados** |
 
-> **Falta uma coisa para publicar:** ativar a **Lovable AI** em Connectors — o
-> gateway está respondendo `403 Lovable AI is disabled for this workspace`, e sem
-> isso a identificação por foto não funciona. Os dois bugs que bloqueavam antes
-> (cron em 401 e primeira foto em 401) já foram corrigidos e verificados.
-> Checklist em [`docs/CORRECOES-PENDENTES.md`](docs/CORRECOES-PENDENTES.md).
+> **Estado em 27/09:** a análise completa está em
+> [`docs/ANALISE-COMPLETA.md`](docs/ANALISE-COMPLETA.md) — 12 bloqueadores
+> antes de publicar, bugs, segurança, LGPD, custos, as funcionalidades pedidas
+> que faltam e a ordem de execução em 7 fases. Ela substitui o checklist antigo
+> de [`docs/CORRECOES-PENDENTES.md`](docs/CORRECOES-PENDENTES.md).
 >
 > **Emergent:** o testing agent da iteração 3 finalmente rodou até o fim em
 > 22/08 — 48/50 na suíte completa (os 2 eram colisão da infra de teste) e 6/6 na
@@ -93,6 +93,7 @@ mata a planta de quem usa; é pior que não responder.
 assets/plants/      Fotos das plantas geradas por IA, prontas para produção
   MANIFEST.md       Modelo, prompt e proveniência de cada imagem
 docs/
+  ANALISE-COMPLETA.md  Análise final: tudo que falta, com prova, correção e teste
   ARQUITETURA.md    As duas implementações, modelo de dados e contrato de API
   ROADMAP.md        Melhorias priorizadas, com esforço e impacto
 ```
