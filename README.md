@@ -31,11 +31,11 @@ fortes diferentes:
 | Rate limit | ✅ por IP (10/min) e cota por usuário, no banco | ✅ por usuário, no Mongo (20/dia) |
 | **Status** | 🟢 Ativo | 🔴 **Bloqueado — créditos esgotados** |
 
-> **Estado em 27/09:** a análise completa está em
-> [`docs/ANALISE-COMPLETA.md`](docs/ANALISE-COMPLETA.md) — 12 bloqueadores
-> antes de publicar, bugs, segurança, LGPD, custos, as funcionalidades pedidas
-> que faltam e a ordem de execução em 7 fases. Ela substitui o checklist antigo
-> de [`docs/CORRECOES-PENDENTES.md`](docs/CORRECOES-PENDENTES.md).
+> **Estado em 16/10:** veja [`docs/RELATORIO.md`](docs/RELATORIO.md). A Fase 1
+> (segurança e custo) está feita no código. O banco está **pausado pelo
+> Lovable** e os créditos acabaram. Os prompts das próximas fases estão prontos
+> em [`docs/prompts/`](docs/prompts/). A análise de 27/09, item por item, fica em
+> [`docs/ANALISE-COMPLETA.md`](docs/ANALISE-COMPLETA.md).
 >
 > **Emergent:** o testing agent da iteração 3 finalmente rodou até o fim em
 > 22/08 — 48/50 na suíte completa (os 2 eram colisão da infra de teste) e 6/6 na
@@ -93,6 +93,8 @@ mata a planta de quem usa; é pior que não responder.
 assets/plants/      Fotos das plantas geradas por IA, prontas para produção
   MANIFEST.md       Modelo, prompt e proveniência de cada imagem
 docs/
+  RELATORIO.md         Estado atual, bloqueios e próximos passos
+  prompts/             Prompts prontos para colar no Lovable, uma fase por vez
   ANALISE-COMPLETA.md  Análise final: tudo que falta, com prova, correção e teste
   ARQUITETURA.md    As duas implementações, modelo de dados e contrato de API
   ROADMAP.md        Melhorias priorizadas, com esforço e impacto
