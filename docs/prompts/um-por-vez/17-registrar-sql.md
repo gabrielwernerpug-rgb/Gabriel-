@@ -6,4 +6,4 @@ Depois, confira que:
 - `has_function_privilege('anon', ...)` é falso em todas as funções `SECURITY DEFINER` do schema `public`;
 - `ai_usage_hit` e `ai_usage_refund` não existem mais.
 
-(cole aqui o conteúdo de docs/sql/2026-10-16-correcoes.sql)
+(cole aqui o conteúdo de docs/sql/2026-10-16-correcoes.sql — está no GitHub, branch claude/smart-garden-ia-tools-0ex7lb)

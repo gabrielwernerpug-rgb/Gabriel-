@@ -1,19 +1,53 @@
 # Relatório — Smart Garden IA
 
-**Atualizado em 16/10/2026** · Projeto Lovable `ae9ae530-…` · Último commit `12ea626`
+**Atualizado em 16/10/2026, 14h30 (UTC)** · Projeto Lovable `ae9ae530-…` · Último commit `12ea626`
 
 ---
 
 ## Em uma frase
 
-A parte de **segurança e custo foi corrigida no código** (Fase 1), mas o app está
-**fora do ar**: o Lovable **pausou o banco de dados** e os **créditos do
-workspace acabaram**. Os dois só você consegue resolver. Depois disso, faltam 4
-prompts — já escritos — para o app ficar pronto para publicar.
+**Tudo que era de banco está corrigido e testado**: segurança, custo, teste
+grátis de 14 dias, excluir conta e lembretes. O banco voltou a funcionar. Falta
+a parte de **tela**, que só o agente do Lovable consegue mexer, e **os créditos
+do Lovable estão zerados**. São 16 mensagens pequenas, já escritas, para o app
+ficar pronto para publicar.
 
 ---
 
-## 1. O que está bloqueando agora
+## ✅ Atualização da tarde (16/10): banco corrigido, um problema por vez
+
+Você religou o banco (**Wake up**). Corrigi tudo que era de banco **direto
+nele**, sem gastar crédito do Lovable. Cada correção foi testada antes de passar
+para a próxima. Os testes que mexem em dados foram feitos dentro de uma
+transação desfeita no fim, então nenhum dado real mudou.
+
+| # | Problema | Teste | Resultado |
+|---|---|---|---|
+| 1 | Qualquer pessoa na internet conseguia **zerar a própria cota** | Chamei a função pela internet, como um atacante | ✅ "permission denied" |
+| 2 | Faltavam as tabelas da Fase 1, e a identificação respondia "manutenção" | Disjuntor com teto 1: a 1ª passa, a 2ª é barrada | ✅ |
+| 3 | Funções antigas que faziam o chat gastar identificação | Contagem depois de apagar | ✅ 0 restantes |
+| 4 | **Teste grátis de 14 dias** não existia | Conta Google nova → Pro por 14 dias; vencido → grátis; mesmo e-mail de novo → sem 2º teste | ✅ |
+| 5 | **Excluir a conta deixava dados para trás** (LGPD) | Apaguei um usuário com 1 conversa e 5 mensagens | ✅ tudo apagado |
+| 6 | Lembrete disparava na hora errada; quem saiu do Pro continuava recebendo | Criado depois do horário: não dispara; grátis: 0 enviados; Pro: 2; teto: barrou no 51º | ✅ |
+| 7 | Dava para encher o banco com texto gigante ou correções sem fim | Mensagem de 5.000 letras barrada; 31ª correção do dia barrada | ✅ |
+| — | Conferência geral de segurança | Tabela sem proteção, função aberta, tabela legível por visitante | ✅ nenhuma |
+
+O SQL de tudo, com o teste de cada um, está em
+[`sql/2026-10-16-correcoes.sql`](sql/2026-10-16-correcoes.sql). É idempotente:
+quando houver crédito, a mensagem [`17-registrar-sql.md`](prompts/um-por-vez/17-registrar-sql.md)
+transforma isso em migration do projeto.
+
+**O que ainda depende de crédito:** os problemas de **tela**. Eles estão em
+[`prompts/um-por-vez/`](prompts/um-por-vez/), **um problema por mensagem**,
+na ordem. O primeiro é o botão de Entrar. Tentei mandar às 14h30 e o Lovable
+recusou por falta de crédito.
+
+**A seção 1 abaixo é da manhã.** O banco já foi religado. Os créditos continuam
+zerados.
+
+---
+
+## 1. O que estava bloqueando de manhã
 
 ### 🔴 O banco de dados está pausado
 
@@ -69,31 +103,34 @@ acha a configuração e trata a IA como desligada (falha fechada, de propósito)
 
 ## 3. O que falta, em ordem
 
-Os prompts estão prontos em [`docs/prompts/`](prompts/). Cole **um por vez** no
-chat do projeto no Lovable e espere terminar antes do próximo.
+**Use os prompts de um problema por vez:** [`prompts/um-por-vez/`](prompts/um-por-vez/).
+Cole um por vez no chat do projeto no Lovable e espere terminar antes do próximo.
+A ordem e as dependências estão no [`LEIA-ME`](prompts/um-por-vez/LEIA-ME.md).
 
-| Ordem | Prompt | O que resolve | Custo aprox. |
-|---|---|---|---|
-| **1b** | [`fase-1b-aplicar-migration.md`](prompts/fase-1b-aplicar-migration.md) | Aplica o banco da Fase 1 e testa. ⚠️ O Lovable vai pedir para você **aprovar** a migration: toque em aprovar. | pouco |
-| **2** | [`fase-2-conta-e-plano.md`](prompts/fase-2-conta-e-plano.md) | Botão **Entrar/Sair**, página **Minha conta**, **teste grátis de 14 dias**, excluir conta, tela que não finge que salvou, resultado sem cartões vazios, nome e ícone do app. | ~5 |
-| **3** | [`fase-3-identificacao-e-publicar.md`](prompts/fase-3-identificacao-e-publicar.md) | Fotos de exemplo nas candidatas, crédito do Pl@ntNet, catálogo clicável, privacidade e termos (LGPD), aviso de toxicidade, app instalável no iPhone, **publicação** e conserto do cron. | ~5 |
-| **4** | [`fase-4-lembretes-e-ajustes.md`](prompts/fase-4-lembretes-e-ajustes.md) | Lembrete da planta identificada, foto guardada de verdade, histórico do chat certo, e o **teste final de ponta a ponta**. | ~5 |
-| 5–7 | [`fases-5-a-7-funcionalidades.md`](prompts/fases-5-a-7-funcionalidades.md) | Minhas plantas, **diagnóstico de planta doente**, **diário com foto**, assinatura (Stripe) e chat que consulta fontes. | ~5 cada |
+- **01 a 05:** entrar e sair, Minha conta, tela honesta, resultado sem cartões vazios, nome e ícone do app.
+- **06 a 11:** fotos de exemplo nas candidatas, catálogo clicável, tempo limite, privacidade e termos, app instalável no iPhone, origem permitida.
+- **12 a 15:** lembrete da planta identificada, histórico do chat, foto guardada de verdade, fotos do catálogo.
+- **16:** publicar e consertar o cron. **Depois dele, o app está pronto para mostrar ao seu tio.**
+- **17:** registrar o SQL de hoje como migration do projeto.
 
-**Depois da Fase 4, o app está pronto para mostrar ao seu tio.** As Fases 5–7 são
-as funcionalidades novas que você pediu.
+Os prompts por fase em [`prompts/`](prompts/) continuam como referência. **A
+parte de banco deles (1b e o teste grátis da Fase 2) já foi feita.**
+
+Depois: [`fases-5-a-7-funcionalidades.md`](prompts/fases-5-a-7-funcionalidades.md)
+— Minhas plantas, **diagnóstico de planta doente**, **diário com foto**,
+assinatura e chat que consulta fontes.
 
 ---
 
 ## 4. Coisas que só você pode fazer
 
-- [ ] **Ter crédito** no Lovable (esperar renovar ou comprar)
-- [ ] **Wake up** no banco (seção 1)
-- [ ] **Aprovar a migration** quando o Lovable pedir, na Fase 1b
-- [ ] **Desligar o login anônimo:** no projeto, procure em **Cloud → Users**, nas configurações de autenticação (*Auth settings* ou *Providers*), e desligue **Anonymous**. Não conferi o nome exato do menu. Se não achar, peça ao agente na Fase 1b o caminho exato
+- [ ] **Ter crédito** no Lovable (esperar renovar ou comprar). **É o único bloqueio que sobrou.**
+- [x] ~~Wake up no banco~~ (feito)
+- [x] ~~Aprovar a migration~~ (não precisa mais: apliquei direto no banco)
+- [ ] **Desligar o login anônimo:** no projeto, procure em **Cloud → Users**, nas configurações de autenticação (*Auth settings* ou *Providers*), e desligue **Anonymous**. Não conferi o nome exato do menu. O servidor já recusa conta anônima, então isto é uma segunda trava
 - [ ] **Pl@ntNet:** ficar com **uma conta só** (os [termos](https://my.plantnet.org/terms_of_use) proíbem mais de uma conta grátis por pessoa). Se a chave que está no Secret é a mesma que foi colada no chat em setembro (`2b10hq…`), **gere outra** e troque
-- [ ] **E-mail de contato**: o Lovable vai pedir pelo formulário de secret `CONTACT_EMAIL` na Fase 3. Ele aparece na página de privacidade
-- [ ] **Entrar com o Google** no app depois da Fase 2. Sua conta nasce com 14 dias de Pro
+- [ ] **E-mail de contato:** o Lovable vai pedir pelo formulário de secret `CONTACT_EMAIL` na mensagem 09. Ele aparece na página de privacidade
+- [ ] **Entrar com o Google** no app depois da mensagem 01. Sua conta nasce com 14 dias de Pro
 
 ---
 
