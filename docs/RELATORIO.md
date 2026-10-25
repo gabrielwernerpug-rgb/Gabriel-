@@ -1,16 +1,40 @@
 # Relatório — Smart Garden IA
 
-**Atualizado em 16/10/2026, 14h30 (UTC)** · Projeto Lovable `ae9ae530-…` · Último commit `12ea626`
+**Atualizado em 25/10/2026** · Projeto Lovable `ae9ae530-…` · Último commit `12ea626`
 
 ---
 
 ## Em uma frase
 
-**Tudo que era de banco está corrigido e testado**: segurança, custo, teste
-grátis de 14 dias, excluir conta e lembretes. O banco voltou a funcionar. Falta
-a parte de **tela**, que só o agente do Lovable consegue mexer, e **os créditos
-do Lovable estão zerados**. São 16 mensagens pequenas, já escritas, para o app
-ficar pronto para publicar.
+**O banco está corrigido e 5 dos 16 problemas de tela já foram resolvidos**
+(entrar e sair, Minha conta, tela honesta, resultado sem cartões vazios e a cara
+do app). Os créditos do Lovable acabaram de novo no meio do caminho. Faltam 11
+mensagens pequenas, já escritas, para o app ficar pronto para publicar.
+
+---
+
+## ✅ 23 a 25/10: problemas de tela, um por vez
+
+Mandei uma mensagem por problema ao agente do Lovable, conferi o código de cada
+resposta antes de mandar a próxima, e corrigi o que vi de errado na mensagem
+seguinte.
+
+| # | Problema | Como ficou | Verificação do agente |
+|---|---|---|---|
+| 01 | Não existia botão de **Entrar** | Cabeçalho com **Entrar**; logado: foto, selo Grátis/Pro e menu com Sair. Tocar na câmera sem login abre o aviso "Entre com o Google". Depois do login, volta para onde estava | Testado no navegador: aviso pelos dois caminhos da câmera, "Agora não", retorno salvo; celular sem transbordar |
+| 02 | Não existia **Minha conta** nem excluir conta | Página `/conta`: plano, dias de teste, uso do mês, Sair e **Excluir minha conta e meus dados**, confirmado digitando EXCLUIR. Sair cancela as notificações do aparelho | 4 testes; tipos do banco atualizados |
+| 03 | A tela **fingia que salvou** | Grátis vê o cartão "recurso do plano Pro" no lugar do chat e dos lembretes. Pro só vê a mensagem ou o lembrete depois que o banco salvou; se falhar, "Não consegui salvar". Limite de 50 lembretes avisado | 16 testes; cartões conferidos no computador e no celular |
+| 04 | Resultado com **cartões vazios** | Sem plano de cuidado: aviso, resumo, fonte, taxonomia e botão **Tentar gerar o plano de cuidado**. Todo resultado mostra a procedência e o aviso "gerado por IA, consulte um agrônomo". Não quebra se faltar um campo | 18 testes; testado com respostas simuladas |
+| 05 | **Cara de app genérico** e confiança inventada | Português de ponta a ponta (404 e erros), ícone do broto, imagem de compartilhamento. Catálogo abre direto com o selo **"Do catálogo"**, sem porcentagem falsa nem animação falsa | 22 testes; as 8 plantas abertas uma a uma |
+
+**O que o agente não conseguiu testar** (precisa de uma conta Google de
+verdade no app): o login completo, o cabeçalho logado, Sair, excluir a conta,
+salvar como Pro e gerar plano de cuidado com a IA de verdade. **Esse é o teste
+que você faz entrando com o Google** — sua conta nasce com 14 dias de Pro.
+
+**Anotado para a publicação (mensagem 16):** a imagem de compartilhamento
+aponta para um endereço chutado (`bloom-brighten-build.lovable.app`). A
+mensagem 16 já pede para trocar pelo endereço publicado de verdade.
 
 ---
 
@@ -37,7 +61,7 @@ O SQL de tudo, com o teste de cada um, está em
 quando houver crédito, a mensagem [`17-registrar-sql.md`](prompts/um-por-vez/17-registrar-sql.md)
 transforma isso em migration do projeto.
 
-**O que ainda depende de crédito:** os problemas de **tela**. Eles estão em
+**O que dependia de crédito:** os problemas de **tela** (andamento acima). Eles estão em
 [`prompts/um-por-vez/`](prompts/um-por-vez/), **um problema por mensagem**,
 na ordem. O primeiro é o botão de Entrar. Tentei mandar às 14h30 e o Lovable
 recusou por falta de crédito.
@@ -124,13 +148,13 @@ assinatura e chat que consulta fontes.
 
 ## 4. Coisas que só você pode fazer
 
-- [ ] **Ter crédito** no Lovable (esperar renovar ou comprar). **É o único bloqueio que sobrou.**
+- [ ] **Ter crédito** no Lovable para as mensagens **06 a 17** (esperar renovar ou comprar). Cada uma custa entre 1 e 4 créditos.
 - [x] ~~Wake up no banco~~ (feito)
 - [x] ~~Aprovar a migration~~ (não precisa mais: apliquei direto no banco)
 - [ ] **Desligar o login anônimo:** no projeto, procure em **Cloud → Users**, nas configurações de autenticação (*Auth settings* ou *Providers*), e desligue **Anonymous**. Não conferi o nome exato do menu. O servidor já recusa conta anônima, então isto é uma segunda trava
 - [ ] **Pl@ntNet:** ficar com **uma conta só** (os [termos](https://my.plantnet.org/terms_of_use) proíbem mais de uma conta grátis por pessoa). Se a chave que está no Secret é a mesma que foi colada no chat em setembro (`2b10hq…`), **gere outra** e troque
 - [ ] **E-mail de contato:** o Lovable vai pedir pelo formulário de secret `CONTACT_EMAIL` na mensagem 09. Ele aparece na página de privacidade
-- [ ] **Entrar com o Google** no app depois da mensagem 01. Sua conta nasce com 14 dias de Pro
+- [ ] **Entrar com o Google** na prévia do app e testar: o cabeçalho logado, Minha conta, uma foto de planta e Sair. Sua conta nasce com 14 dias de Pro. A mensagem 01 já está feita
 
 ---
 

@@ -14,4 +14,5 @@ Faça:
    ```
    Precisa aparecer **200**.
 4. **Notificações.** Confira que existem os secrets `VAPID_PUBLIC_KEY` e `VAPID_PRIVATE_KEY`, e que `/api/public/vapid-key` responde 200. Se faltarem, gere o par e peça pelo formulário de secret.
-5. Me mande o link publicado.
+5. **Imagem de compartilhamento:** as páginas apontam `og:image` e `twitter:image` para `https://bloom-brighten-build.lovable.app/og-image.png`, um endereço que foi chutado. Troque pelo endereço publicado de verdade (ex.: `https://smart-garden-ia.lovable.app/og-image.png`) em todas as páginas.
+6. Me mande o link publicado.
