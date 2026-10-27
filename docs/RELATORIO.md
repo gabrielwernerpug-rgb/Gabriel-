@@ -1,19 +1,19 @@
 # Relatório — Smart Garden IA
 
-**Atualizado em 25/10/2026** · Projeto Lovable `ae9ae530-…` · Último commit `12ea626`
+**Atualizado em 27/10/2026** · Projeto Lovable `ae9ae530-…` · Último commit `12ea626`
 
 ---
 
 ## Em uma frase
 
-**O banco está corrigido e 5 dos 16 problemas de tela já foram resolvidos**
-(entrar e sair, Minha conta, tela honesta, resultado sem cartões vazios e a cara
-do app). Os créditos do Lovable acabaram de novo no meio do caminho. Faltam 11
+**O banco está corrigido e 7 dos 16 problemas de tela já foram resolvidos**
+(entrar e sair, Minha conta, tela honesta, resultado sem cartões vazios, a cara
+do app, fotos de exemplo nas sugestões e catálogo clicável). Os créditos do Lovable acabaram de novo no meio do caminho. Faltam 9
 mensagens pequenas, já escritas, para o app ficar pronto para publicar.
 
 ---
 
-## ✅ 23 a 25/10: problemas de tela, um por vez
+## ✅ 23 a 27/10: problemas de tela, um por vez
 
 Mandei uma mensagem por problema ao agente do Lovable, conferi o código de cada
 resposta antes de mandar a próxima, e corrigi o que vi de errado na mensagem
@@ -26,6 +26,8 @@ seguinte.
 | 03 | A tela **fingia que salvou** | Grátis vê o cartão "recurso do plano Pro" no lugar do chat e dos lembretes. Pro só vê a mensagem ou o lembrete depois que o banco salvou; se falhar, "Não consegui salvar". Limite de 50 lembretes avisado | 16 testes; cartões conferidos no computador e no celular |
 | 04 | Resultado com **cartões vazios** | Sem plano de cuidado: aviso, resumo, fonte, taxonomia e botão **Tentar gerar o plano de cuidado**. Todo resultado mostra a procedência e o aviso "gerado por IA, consulte um agrônomo". Não quebra se faltar um campo | 18 testes; testado com respostas simuladas |
 | 05 | **Cara de app genérico** e confiança inventada | Português de ponta a ponta (404 e erros), ícone do broto, imagem de compartilhamento. Catálogo abre direto com o selo **"Do catálogo"**, sem porcentagem falsa nem animação falsa | 22 testes; as 8 plantas abertas uma a uma |
+| 06 | Sugestões de planta **sem foto** | Cada uma das 3 sugestões mostra uma foto de exemplo (Pl@ntNet ou Wikipédia), com o crédito do autor; sem foto, aparece o ícone de broto | Checagem de tipos e 22 testes |
+| 07 | Catálogo **não abria** a planta; busca quebrava | Cada planta de "Todas as plantas" abre o resultado. A busca aceita vírgula e parênteses. Tem "Carregar mais". "Não é essa planta?" sem resultado oferece **Tentar com outra foto** (já em Flor). Nova opção **Casca/tronco** | 24 testes; **ainda não visto no navegador**: a mensagem 08 pede essa conferência primeiro |
 
 **O que o agente não conseguiu testar** (precisa de uma conta Google de
 verdade no app): o login completo, o cabeçalho logado, Sair, excluir a conta,
@@ -148,7 +150,7 @@ assinatura e chat que consulta fontes.
 
 ## 4. Coisas que só você pode fazer
 
-- [ ] **Ter crédito** no Lovable para as mensagens **06 a 17** (esperar renovar ou comprar). Cada uma custa entre 1 e 4 créditos.
+- [ ] **Ter crédito** no Lovable para as mensagens **08 a 17** (esperar renovar ou comprar). Cada uma custa entre 1 e 4 créditos.
 - [x] ~~Wake up no banco~~ (feito)
 - [x] ~~Aprovar a migration~~ (não precisa mais: apliquei direto no banco)
 - [ ] **Desligar o login anônimo:** no projeto, procure em **Cloud → Users**, nas configurações de autenticação (*Auth settings* ou *Providers*), e desligue **Anonymous**. Não conferi o nome exato do menu. O servidor já recusa conta anônima, então isto é uma segunda trava

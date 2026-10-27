@@ -14,8 +14,8 @@ Os problemas de **banco** não estão aqui: foram corrigidos direto no banco em
 | 03 | A tela finge que salvou (chat e lembrete do grátis) | 01 | ✅ 24/10 (c822af3) |
 | 04 | Resultado com cartões vazios | — | ✅ 25/10 (62c82d1) |
 | 05 | Cara de app genérico e confiança inventada | — | ✅ 25/10 (29847b5) |
-| 06 | Candidatas sem foto de exemplo | — | ⏳ |
-| 07 | Catálogo não abre a planta; busca quebra | — | ⏳ |
+| 06 | Candidatas sem foto de exemplo | — | ✅ 27/10 (b15e73a) |
+| 07 | Catálogo não abre a planta; busca quebra | — | ✅ 27/10 (41531a9) — falta ver no navegador, pedido no 08 |
 | 08 | Carregamento infinito | — | ⏳ |
 | 09 | Privacidade, termos, toxicidade, crédito do Pl@ntNet | — | ⏳ |
 | 10 | App não instala no iPhone (sem notificação) | 05 | ⏳ |
